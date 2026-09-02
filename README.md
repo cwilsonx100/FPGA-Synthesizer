@@ -60,7 +60,6 @@ Connects to any MIDI keyboard through a standard MIDI DIN cable.
 
 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
@@ -75,7 +74,7 @@ Connects to any MIDI keyboard through a standard MIDI DIN cable.
 * [![FastAPI][fastapi.tiangolo.com]][FastAPI-url]
 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 
 ### Main Hardware
 
@@ -135,13 +134,13 @@ The prototype was first breadboarded and then designed in KiCad.
 
 Connor Wilson - Cwilsonx100@gmail.com
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
 
 
 
