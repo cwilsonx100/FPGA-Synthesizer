@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+pydantic
+# Raspberry Pi only (auto-fallback to simulation if missing):
+spidev ; platform_system == "Linux"
+gpiozero ; platform_system == "Linux"

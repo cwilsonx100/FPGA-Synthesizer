@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Synth Control V3</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin:0; background:#f4f4f6; color:#1a1a1a; }
+  header { background:#222; color:#fff; padding:12px 18px; display:flex; gap:16px; align-items:center; }
+  header h1 { font-size:18px; margin:0; }
+  #status { font-size:13px; opacity:.85; }
+  #fakebanner { background:#b8860b; color:#fff; padding:6px 18px; font-size:13px; display:none; }
+  main { padding:18px; max-width:920px; margin:0 auto; }
+  section { background:#fff; border:1px solid #ddd; border-radius:8px; padding:14px 16px; margin-bottom:16px; }
+  section h2 { font-size:15px; margin:0 0 10px; border-bottom:1px solid #eee; padding-bottom:6px; }
+  .toggles { display:flex; flex-wrap:wrap; gap:10px; }
+  .toggle { padding:8px 12px; border:1px solid #bbb; border-radius:6px; background:#eee; cursor:pointer; font-size:14px; user-select:none; }
+  .toggle.on { background:#2f855a; color:#fff; border-color:#2f855a; }
+  .btns button { padding:8px 14px; margin-right:6px; margin-bottom:4px; border:1px solid #bbb; background:#eee; border-radius:6px; cursor:pointer; font-size:14px; }
+  .btns button.active { background:#2b6cb0; color:#fff; border-color:#2b6cb0; }
+  .wavegrid { display:flex; flex-wrap:wrap; gap:8px; }
+  .wavetile { width:104px; border:1px solid #bbb; border-radius:8px; background:#fafafa;
+              cursor:pointer; padding:4px; text-align:center; }
+  .wavetile.active { border-color:#2b6cb0; background:#eaf2fb; box-shadow:0 0 0 1px #2b6cb0 inset; }
+  .wavetile svg { display:block; width:100%; height:44px; }
+  .wavetile .wl { font-size:12px; margin-top:2px; color:#333; }
+  .wavetile .wave-line { fill:none; stroke:#2b6cb0; stroke-width:1.4; }
+  .wavetile .wave-axis { stroke:#ddd; stroke-width:0.6; }
+  .voicegrid { display:flex; flex-wrap:wrap; gap:6px; }
+  .row { display:flex; align-items:center; gap:12px; padding:6px 0; border-bottom:1px solid #f2f2f2; }
+  .row .name { width:130px; font-size:14px; }
+  .row .name small { color:#888; }
+  .barwrap { flex:1; background:#eee; height:10px; border-radius:5px; overflow:hidden; }
+  .bar { height:100%; background:#2b6cb0; width:0%; }
+  .row input[type=range] { flex:1; }
+  .row .val { width:120px; font-size:12px; color:#555; font-variant-numeric:tabular-nums; }
+  .src button { font-size:12px; padding:3px 8px; margin-left:4px; border:1px solid #bbb; background:#eee; border-radius:5px; cursor:pointer; }
+  .src button.active { background:#2b6cb0; color:#fff; border-color:#2b6cb0; }
+</style>
+</head>
+<body>
+<header><h1>Synth Control V3</h1><span id="status">connecting…</span></header>
+<div id="fakebanner">SIMULATION MODE — no hardware detected (pots simulated, FPGA writes logged)</div>
+
+<main>
+  <section>
+    <h2>Aspects</h2>
+    <div class="toggles">
+      <div class="toggle" data-toggle="mute" data-invert="1">Audio</div>
+      <div class="toggle" data-toggle="osc_b">Osc B (detune)</div>
+      <div class="toggle" data-toggle="filter_bypass" data-invert="1">Filter</div>
+    </div>
+    <div class="voicegrid" id="voicegrid" style="margin-top:10px"></div>
+    <div style="display:none">
+    </div>
+  </section>
+
+  <section>
+    <h2>Waveform</h2>
+    <div class="wavegrid" id="wavegrid"></div>
+  </section>
+
+  <section>
+    <h2>Filter type</h2>
+    <div class="btns" id="ftypebtns"></div>
+  </section>
+
+  <section>
+    <h2>Pots <small style="color:#888">— POT reads the knob, MANUAL uses the slider</small></h2>
+    <div id="pots"></div>
+  </section>
+
+  <section id="seqsection">
+    <h2>Sequencer <small style="color:#888">— FPGA-timed, plays alongside your keyboard</small></h2>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:10px">
+      <button id="seqrun" class="toggle">Run</button>
+      <button id="seqrand">Randomize</button>
+      <label>Root <select id="seqroot"></select></label>
+      <label>Scale <select id="seqscale"></select></label>
+      <label>Div <select id="seqdiv"></select></label>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-bottom:10px">
+      <label>Tempo <input type="range" id="seqbpm" min="20" max="300"> <span id="seqbpmv"></span> BPM</label>
+      <label>Note length <input type="range" id="seqgate" min="5" max="100"> <span id="seqgatev"></span>%</label>
+      <label>Steps <input type="range" id="seqlen" min="1" max="16"> <span id="seqlenv"></span></label>
+      <label>Rest % <input type="range" id="seqrest" min="0" max="80"> <span id="seqrestv"></span></label>
+      <label>Oct low <input type="range" id="seqoctlo" min="1" max="7"> <span id="seqoctlov"></span></label>
+      <label>Oct high <input type="range" id="seqocthi" min="1" max="7"> <span id="seqocthiv"></span></label>
+    </div>
+    <div id="seqsteps" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px"></div>
+    <h3 style="font-size:14px;margin:6px 0">Sequencer sound (independent)</h3>
+    <div class="wavegrid" id="seqwavegrid" style="margin-bottom:10px"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 20px;align-items:center">
+      <label>Attack <input type="range" id="sq_s_attack" min="0" max="1000"></label>
+      <label>Decay <input type="range" id="sq_s_decay" min="0" max="1000"></label>
+      <label>Sustain <input type="range" id="sq_s_sustain" min="0" max="1000"></label>
+      <label>Release <input type="range" id="sq_s_release" min="0" max="1000"></label>
+      <label>Pulse width <input type="range" id="sq_s_pulse_width" min="0" max="1000"></label>
+      <label>Detune <input type="range" id="sq_s_detune" min="0" max="1000"></label>
+      <label>Cutoff <input type="range" id="sq_s_filter_f" min="0" max="1000"></label>
+      <label>Resonance <input type="range" id="sq_s_filter_q" min="0" max="1000"></label>
+      <label>Volume <input type="range" id="sq_s_volume" min="0" max="1000"></label>
+      <label>Filter type <select id="sqftype"></select></label>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px">
+      <button id="sq_osc_b" class="toggle">Osc B (detune)</button>
+      <button id="sq_bypass" class="toggle">Filter</button>
+      <button id="sqmute" class="toggle">Seq Audio</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+let building = true;
+
+function post(url, body){ return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); }
+
+function buildPots(st){
+  const box = document.getElementById("pots"); box.innerHTML="";
+  const slots = Object.keys(st.pots).sort((a,b)=>a-b);
+  for(const slot of slots){
+    const p = st.pots[slot];
+    const row=document.createElement("div"); row.className="row";
+    row.innerHTML=`
+      <div class="name">${p.param}<br><small>${p.label} (slot ${slot})</small></div>
+      <div class="barwrap"><div class="bar" id="bar-${slot}"></div></div>
+      <input type="range" min="0" max="65535" value="${p.manual}" id="man-${slot}" style="display:none">
+      <div class="val" id="val-${slot}"></div>
+      <div class="src">
+        <button id="pot-${slot}">POT</button>
+        <button id="mtn-${slot}">MANUAL</button>
+      </div>`;
+    box.appendChild(row);
+    document.getElementById(`pot-${slot}`).onclick=()=>post("/api/source",{slot:+slot,source:"pot"});
+    document.getElementById(`mtn-${slot}`).onclick=()=>post("/api/source",{slot:+slot,source:"manual"});
+    const sl=document.getElementById(`man-${slot}`);
+    sl.oninput=()=>post("/api/manual",{slot:+slot,value:parseInt(sl.value)});
+  }
+}
+
+function buildWaveGrid(st){
+  const box=document.getElementById("wavegrid"); box.innerHTML="";
+  const names=st.waveform_names, paths=st.wave_paths;
+  for(const v of Object.keys(names)){
+    const tile=document.createElement("div");
+    tile.className="wavetile"; tile.id=`wavetile-${v}`;
+    tile.innerHTML=`
+      <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+        <line class="wave-axis" x1="0" y1="30" x2="100" y2="30"/>
+        <polyline class="wave-line" points="${paths[v]}"/>
+      </svg>
+      <div class="wl">${names[v]}</div>`;
+    tile.onclick=()=>post("/api/toggle",{name:"waveform",value:parseInt(v)});
+    box.appendChild(tile);
+  }
+}
+
+function buildVoiceGrid(n){
+  const box=document.getElementById("voicegrid"); box.innerHTML="";
+  for(let i=0;i<n;i++){
+    const el=document.createElement("div");
+    el.className="toggle"; el.dataset.voice=i; el.textContent=`V${i+1}`;
+    el.onclick=async()=>{
+      const st=await(await fetch("/api/state")).json();
+      post("/api/toggle",{name:"voice_mask",value:st.toggles.voice_mask^(1<<i)});
+    };
+    box.appendChild(el);
+  }
+}
+
+function buildChoice(id, names, toggleName){
+  const box=document.getElementById(id); box.innerHTML="";
+  for(const [v,label] of Object.entries(names)){
+    const b=document.createElement("button"); b.textContent=label; b.id=`${id}-${v}`;
+    b.onclick=()=>post("/api/toggle",{name:toggleName,value:parseInt(v)});
+    box.appendChild(b);
+  }
+}
+
+function render(st){
+  document.getElementById("status").textContent =
+    `loop ${st.loop_rate} Hz · muxes [${st.enabled_mux_channels.join(",")}]` + (st.simulated?" · SIM":" · live");
+  document.getElementById("fakebanner").style.display = st.simulated?"block":"none";
+
+  if(building){
+    buildPots(st);
+    buildWaveGrid(st);
+    buildVoiceGrid(st.num_voices);
+    buildChoice("ftypebtns", st.filter_type_names, "filter_type");
+    building=false;
+  }
+
+  for(const slot of Object.keys(st.pots)){
+    const p=st.pots[slot];
+    document.getElementById(`bar-${slot}`).style.width=(p.value/65535*100).toFixed(1)+"%";
+    document.getElementById(`val-${slot}`).textContent =
+      `${p.value}` + (p.source==="pot"?` (adc ${p.adc_raw})`:` (man)`);
+    const isPot=p.source==="pot";
+    document.getElementById(`pot-${slot}`).classList.toggle("active",isPot);
+    document.getElementById(`mtn-${slot}`).classList.toggle("active",!isPot);
+    document.getElementById(`man-${slot}`).style.display=isPot?"none":"block";
+  }
+  for(const v of Object.keys(st.waveform_names))
+    document.getElementById(`wavetile-${v}`).classList.toggle("active", st.toggles.waveform==v);
+  for(const v of Object.keys(st.filter_type_names))
+    document.getElementById(`ftypebtns-${v}`).classList.toggle("active", st.toggles.filter_type==v);
+
+  for(const el of document.querySelectorAll("[data-toggle]")){
+    const key=el.dataset.toggle; let on=st.toggles[key]==1;
+    if(el.dataset.invert) on=!on;
+    el.classList.toggle("on",on);
+  }
+  for(const el of document.querySelectorAll("[data-voice]")){
+    const bit=parseInt(el.dataset.voice);
+    el.classList.toggle("on", !!((st.toggles.voice_mask>>bit)&1));
+  }
+}
+
+document.querySelectorAll("[data-toggle]").forEach(el=>{
+  el.onclick=async()=>{
+    const key=el.dataset.toggle;
+    const cur=(await(await fetch("/api/state")).json()).toggles[key];
+    post("/api/toggle",{name:key,value:cur?0:1});
+  };
+});
+document.querySelectorAll("[data-voice]").forEach(el=>{
+  el.onclick=async()=>{
+    const bit=parseInt(el.dataset.voice);
+    const st=await(await fetch("/api/state")).json();
+    post("/api/toggle",{name:"voice_mask",value:st.toggles.voice_mask^(1<<bit)});
+  };
+});
+
+
+// ---------- sequencer ----------
+let seqBuilt=false;
+function opt(sel,vals,cur){ sel.innerHTML=""; for(const v of vals){const o=document.createElement("option");o.value=v;o.textContent=v;if(v==cur)o.selected=true;sel.appendChild(o);} }
+async function seqSet(body){ await post("/api/sequencer/set",body); }
+async function seqBank(name,value){ await post("/api/sequencer/bank",{name,value:parseInt(value)}); }
+
+function buildSeq(sq){
+  opt(document.getElementById("seqroot"),sq.roots,sq.root);
+  opt(document.getElementById("seqscale"),sq.scales,sq.scale);
+  opt(document.getElementById("seqdiv"),sq.divisions,sq.division);
+  opt(document.getElementById("sqftype"),Object.values({0:"Low-pass",1:"Band-pass",2:"High-pass",3:"Notch"}),null);
+  document.getElementById("seqroot").onchange=e=>seqSet({root:e.target.value});
+  document.getElementById("seqscale").onchange=e=>seqSet({scale:e.target.value});
+  document.getElementById("seqdiv").onchange=e=>seqSet({division:e.target.value});
+  document.getElementById("seqbpm").oninput=e=>{document.getElementById("seqbpmv").textContent=e.target.value;seqSet({bpm:parseInt(e.target.value)});};
+  document.getElementById("seqgate").oninput=e=>{document.getElementById("seqgatev").textContent=e.target.value;seqSet({gate_fraction:parseInt(e.target.value)/100});};
+  document.getElementById("seqlen").oninput=e=>{document.getElementById("seqlenv").textContent=e.target.value;seqSet({length:parseInt(e.target.value)});};
+  document.getElementById("seqrest").oninput=e=>{document.getElementById("seqrestv").textContent=e.target.value;seqSet({rest_prob:parseInt(e.target.value)/100});};
+  document.getElementById("seqoctlo").oninput=e=>{document.getElementById("seqoctlov").textContent=e.target.value;seqSet({oct_low:parseInt(e.target.value)});};
+  document.getElementById("seqocthi").oninput=e=>{document.getElementById("seqocthiv").textContent=e.target.value;seqSet({oct_high:parseInt(e.target.value)});};
+  document.getElementById("seqrun").onclick=async()=>{const s=await(await fetch("/api/sequencer")).json();seqSet({run:!s.run});};
+  document.getElementById("seqrand").onclick=()=>post("/api/sequencer/randomize",{});
+  // continuous seq sound sliders (0..1000 position, scaled server-side)
+  ["s_attack","s_decay","s_sustain","s_release","s_pulse_width","s_detune","s_filter_f","s_filter_q","s_volume"].forEach(n=>{
+    const el=document.getElementById("sq_"+n);
+    if(el) el.oninput=e=>seqBank(n,parseInt(e.target.value));
+  });
+  document.getElementById("sqftype").onchange=e=>seqBank("s_filter_type",e.target.selectedIndex);
+  document.getElementById("sqmute").onclick=async()=>{const s=await(await fetch("/api/sequencer")).json();seqBank("s_mute",s.bank.s_mute?0:1);};
+  document.getElementById("sq_osc_b").onclick=async()=>{const s=await(await fetch("/api/sequencer")).json();seqBank("s_osc_b",s.bank.s_osc_b?0:1);};
+  document.getElementById("sq_bypass").onclick=async()=>{const s=await(await fetch("/api/sequencer")).json();seqBank("s_filter_bypass",s.bank.s_filter_bypass?0:1);};
+  // set initial slider positions from current bank values (approx inverse scale)
+  const invLin=(v,lo,hi)=>Math.round((v-lo)/(hi-lo)*1000);
+  const rng={s_attack:[3,2500],s_decay:[2,1500],s_sustain:[0,65535],s_release:[2,2000],s_pulse_width:[3000,62000],s_volume:[0,65535]};
+  for(const n in rng){const el=document.getElementById("sq_"+n); if(el&&sq.bank[n]!=null) el.value=invLin(sq.bank[n],rng[n][0],rng[n][1]);}
+  const dt=document.getElementById("sq_s_detune"); if(dt) dt.value=Math.round((sq.bank.s_detune||0)/7*1000);
+  const cf=document.getElementById("sq_s_filter_f"); if(cf) cf.value=500;
+  const rq=document.getElementById("sq_s_filter_q"); if(rq) rq.value=500;
+  // seq waveform tiles (reuse wave pictures)
+  const box=document.getElementById("seqwavegrid"); box.innerHTML="";
+  for(const v of Object.keys(sq.waveform_names)){
+    const t=document.createElement("div"); t.className="wavetile"; t.id=`seqwave-${v}`;
+    t.innerHTML=`<svg viewBox="0 0 100 60" preserveAspectRatio="none"><line class="wave-axis" x1="0" y1="30" x2="100" y2="30"/><polyline class="wave-line" points="${LASTWAVEPATHS[v]||''}"/></svg><div class="wl">${sq.waveform_names[v]}</div>`;
+    t.onclick=()=>seqBank("s_waveform",parseInt(v));
+    box.appendChild(t);
+  }
+  seqBuilt=true;
+}
+
+function renderSeq(sq){
+  document.getElementById("seqbpm").value=sq.bpm; document.getElementById("seqbpmv").textContent=sq.bpm;
+  document.getElementById("seqgate").value=Math.round(sq.gate_fraction*100); document.getElementById("seqgatev").textContent=Math.round(sq.gate_fraction*100);
+  document.getElementById("seqlen").value=sq.length; document.getElementById("seqlenv").textContent=sq.length;
+  document.getElementById("seqrest").value=Math.round(sq.rest_prob*100); document.getElementById("seqrestv").textContent=Math.round(sq.rest_prob*100);
+  document.getElementById("seqoctlo").value=sq.oct_low; document.getElementById("seqoctlov").textContent=sq.oct_low;
+  document.getElementById("seqocthi").value=sq.oct_high; document.getElementById("seqocthiv").textContent=sq.oct_high;
+  document.getElementById("seqrun").classList.toggle("on",sq.run);
+  document.getElementById("sqmute").classList.toggle("on",!sq.bank.s_mute);
+  document.getElementById("sq_osc_b").classList.toggle("on",!!sq.bank.s_osc_b);
+  document.getElementById("sq_bypass").classList.toggle("on",!sq.bank.s_filter_bypass);
+  for(const v of Object.keys(sq.waveform_names))
+    document.getElementById(`seqwave-${v}`)?.classList.toggle("active",sq.bank.s_waveform==v);
+  const box=document.getElementById("seqsteps"); box.innerHTML="";
+  for(let i=0;i<sq.length;i++){
+    const st=sq.pattern[i]||{active:false,note:0};
+    const d=document.createElement("div");
+    d.style.cssText="width:40px;height:40px;border:1px solid #bbb;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;"+(st.active?"background:#2b6cb0;color:#fff;":"background:#eee;color:#999;");
+    d.textContent=st.active?st.note:"·";
+    box.appendChild(d);
+  }
+}
+let LASTWAVEPATHS={};
+
+async function poll(){
+  try{
+    const st=await(await fetch("/api/state")).json();
+    LASTWAVEPATHS=st.wave_paths||LASTWAVEPATHS;
+    render(st);
+    if(st.sequencer){ if(!seqBuilt) buildSeq(st.sequencer); renderSeq(st.sequencer); }
+  }
+  catch(e){ document.getElementById("status").textContent="disconnected"; }
+}
+setInterval(poll,200); poll();
+</script>
+</body>
+</html>
