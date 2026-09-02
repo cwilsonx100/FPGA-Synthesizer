@@ -88,18 +88,26 @@ Here's a blank template to get started. To avoid retyping too much info, do a se
 
 ### Built With
 
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
+* [![Verilog][Verilog.com]][Verilog-url]
+* [![Kicad][Kicad.org]][Kicad-url]
+* [![Vivado][AMD.com]][Vivado-url]
+* [![Python][Python.org]][Python-url]
+* [![MIDI][MIDI.org]][MIDI-url]
+* [![PI][raspberrypi.com]][pi-url]
+* [![FastAPI][fastapi.tiangolo.com]][FastAPI-url]
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+### Main Hardware
 
+Artix-7 Cmod A7-35T
+
+Adafruit I2S Stereo Decoder - UDA1334A Breakout
+
+Raspberry Pi 4 Model B
+
+Full Hardware list is in the BOM
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -236,18 +244,20 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 [product-screenshot]: images/screenshot.png
 <!-- Shields.io badges. You can a comprehensive list with many more badges at: https://github.com/inttter/md-badges -->
-[Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
-[Next-url]: https://nextjs.org/
-[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
-[React-url]: https://reactjs.org/
-[Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
-[Vue-url]: https://vuejs.org/
-[Angular.io]: https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white
-[Angular-url]: https://angular.io/
-[Svelte.dev]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
-[Svelte-url]: https://svelte.dev/
-[Laravel.com]: https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white
-[Laravel-url]: https://laravel.com
+[Verilog.com]: https://img.shields.io/badge/Hardware-Verilog-blue
+[Verilog-url]: https://www.verilog.com/
+[Kicad.org]: https://img.shields.io/badge/Hardware-KiCad-blue
+[Kicad-url]: https://www.kicad.org/
+[AMD.com]: https://img.shields.io/badge/EDA-Vivado-blue
+[Vivado-url]: https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html
+[Python.org]: https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff
+[Python-url]: https://www.python.org/
+[MIDI.org]: https://img.shields.io/badge/-MIDI-000000?style=for-the-badge&logo=midi&logoColor=white
+[MIDI-url]: https://midi.org/
+[raspberrypi.com]: https://img.shields.io/badge/-RaspberryPi-C51A4A?style=for-the-badge&logo=Raspberry-Pi
+[PI-url]: https://www.raspberrypi.com/
+[fastapi.tiangolo.com]: https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi
+[FastAPI-url]: https://fastapi.tiangolo.com/
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
