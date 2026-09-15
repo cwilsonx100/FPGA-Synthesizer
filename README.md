@@ -5,7 +5,7 @@
     A musical synthesizer that runs on an Artix-7 Cmod A7-35T
     <br />
     <br />
-    <a href="https://github.com/github_username/repo_name">View Demo</a>
+  
     
   </p>
 </div>
@@ -18,7 +18,7 @@
 
 ## Overview
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+
 
 Includes 10-Voice Polyphony with Filters, Detune Oscillators, Phase Modulation, and ADSR. All with Variable controls.
 
