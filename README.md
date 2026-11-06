@@ -94,7 +94,6 @@ Includes Gerber Files and a full BOM.
 The prototype was first breadboarded and then designed in KiCad.
 
 
-<img width="2085" height="1251" alt="Schematic" src="https://github.com/user-attachments/assets/b73fe187-ac6b-45b8-b760-4336670b296b" />
 
 <img width="1871" height="827" alt="PCB" src="https://github.com/user-attachments/assets/bbdbc200-9539-4353-8682-b59a3f504ef0" />
 
